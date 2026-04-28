@@ -183,7 +183,7 @@ export default function Chat() {
                   </div>
 
                   <div className="text-base md:text-lg leading-relaxed">
-                    {m.parts.map((part, i) =>
+                    {m.parts?.map((part, i) =>
                       part.type === "text" ? (
                         <span
                           key={i}

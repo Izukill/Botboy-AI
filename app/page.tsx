@@ -1,5 +1,7 @@
 'use client';
-import { useChat } from '@ai-sdk/react';
+import { useChat } from '@ai-sdk/react'
+import Image from 'next/image';
+import Mewo from './components/Mewo';
 import { useState, useEffect, useRef } from 'react';
 import { Send, User, Terminal, MessageSquare, Database, Menu, X } from 'lucide-react';
 
@@ -25,6 +27,10 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen w-full bg-black font-mono text-green-500 overflow-hidden relative">
+
+      <div 
+        className="absolute inset-0 z-[0] bg-[url('/lainwallpaper.jpg')] bg-cover bg-center bg-no-repeat opacity-3 pointer-events-none mix-blend-screen"
+      />
       
       {isMobileSidebarOpen && (
         <div 
@@ -93,11 +99,16 @@ export default function Chat() {
               <div className="text-sm text-green-800/60 p-2 border border-green-900/50 bg-green-950/10 border-dashed">
                 [ Nenhum vetor carregado ]
               </div>
-            </div>
+            </div>            
           </div>
 
-          <div className="mt-auto pt-4 border-t border-green-800 text-xs text-green-700 text-center">
-            Acesso root autorizado.
+          <div className="mt-50 mb-3 pt-4 text-sm text-green-700 text-center hover:text-green-400 transition-colors">
+            <a href="https://loretoportifolio.vercel.app/" target="_blank" rel="noopener noreferrer">
+              <p>Sobre o Criador</p>
+            </a>
+          </div>
+          <div className="mt-auto pt-4 border-t border-green-800 text-xs text-green-700 text-center">          
+            <p>Acesso root autorizado.</p>
           </div>
         </div>
       </aside>
@@ -163,30 +174,39 @@ export default function Chat() {
 
         {/* inputs */}
         <div className="absolute bottom-0 w-full p-4 md:p-8 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none flex justify-center z-20">
-          <form
-            onSubmit={handleSubmit}
-            className="w-full max-w-2xl flex gap-2 pointer-events-auto bg-black shadow-[0_-10px_20px_rgba(0,0,0,0.8)]"
-          >
-            <div className="relative flex-grow flex items-center">
-              <span className="absolute left-3 md:left-4 text-green-700 font-bold select-none animate-pulse md:text-lg">
-                &gt;
-              </span>
-              <input
-                className="w-full pl-8 md:pl-10 p-3 md:p-4 bg-black border border-green-600 text-green-400 placeholder-green-900 outline-none focus:border-green-400 focus:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all md:text-lg"
-                value={inputValue}
-                placeholder="Inserir comando..."
-                onChange={(e) => setInputValue(e.target.value)}
-                autoComplete="off"
-                spellCheck="false"
-              />
-            </div>
-            <button
-              type="submit"
-              className="p-3 md:p-4 bg-black border border-green-600 text-green-500 hover:bg-green-900 hover:text-green-300 hover:border-green-400 transition-colors flex items-center justify-center cursor-pointer"
-            >          
-              <Send size={20} className="md:w-6 md:h-6" />
-            </button>
-          </form>
+          
+          {/* 1. Wrapper flex que segura o form e o gif juntos no mesmo limite de largura (max-w-2xl) */}
+          <div className="w-full max-w-2xl flex items-end gap-2 md:gap-3 pointer-events-auto">
+            
+            {/* 2. Adicionado 'flex-grow' para o formulário ocupar todo o espaço possível */}
+            <form
+              onSubmit={handleSubmit}
+              className="flex-grow flex gap-2 bg-black shadow-[0_-10px_20px_rgba(0,0,0,0.8)]"
+            >
+              <div className="relative flex-grow flex items-center">
+                <span className="absolute left-3 md:left-4 text-green-700 font-bold select-none animate-pulse md:text-lg">
+                  &gt;
+                </span>
+                <input
+                  className="w-full pl-8 md:pl-10 p-3 md:p-4 bg-black border border-green-600 text-green-400 placeholder-green-900 outline-none focus:border-green-400 focus:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all md:text-lg"
+                  value={inputValue}
+                  placeholder="Inserir comando..."
+                  onChange={(e) => setInputValue(e.target.value)}
+                  autoComplete="off"
+                  spellCheck="false"
+                />
+              </div>
+              <button
+                type="submit"
+                className="p-3 md:p-4 bg-black border border-green-600 text-green-500 hover:bg-green-900 hover:text-green-300 hover:border-green-400 transition-colors flex items-center justify-center cursor-pointer"
+              >          
+                <Send size={20} className="md:w-6 md:h-6" />
+              </button>
+            </form>
+
+            <Mewo />   
+                   
+          </div>
         </div>
 
       </div>

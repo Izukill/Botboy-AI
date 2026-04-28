@@ -1,0 +1,26 @@
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Chat {
+  id        String    @id @default(uuid())
+  title     String    
+  createdAt DateTime  @default(now())
+  messages  Message[] 
+}
+
+// Cada balão de texto da conversa
+model Message {
+  id        String   @id @default(uuid())
+  chatId    String
+  role      String   //'user' ou 'assistant'
+  content   String   // O texto da mensagem
+  createdAt DateTime @default(now())
+  chat      Chat     @relation(fields: [chatId], references: [id])
+}

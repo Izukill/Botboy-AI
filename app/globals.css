@@ -5,11 +5,72 @@
   --foreground: #171717;
 }
 
+/* mapeamento do tailwind */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  
+  --color-sys-bg: var(--sys-bg);
+  --color-sys-panel: var(--sys-panel);
+  --color-sys-dark: var(--sys-dark);
+  --color-sys-border: var(--sys-border);
+  --color-sys-muted: var(--sys-muted);
+  --color-sys-muted-light: var(--sys-muted-light);
+  --color-sys-fg: var(--sys-fg);
+  --color-sys-accent: var(--sys-accent);
+  --color-sys-accent-light: var(--sys-accent-light);
+}
+
+/* padrão green terminal */
+:root, [data-theme="green"] {
+  --sys-bg: #000000;          
+  --sys-panel: #052e16;        
+  --sys-dark: #14532d;        
+  --sys-border: #166534;       
+  --sys-muted: #15803d;       
+  --sys-muted-light: #16a34a; 
+  --sys-fg: #22c55e;          
+  --sys-accent: #4ade80;       
+  --sys-accent-light: #86efac;
+
+  --sys-wallpaper: url('/lainwallpaper.jpg');
+  --sys-wp-blend: screen;
+  --sys-wp-opacity: 0.03;
+}
+
+/* windows 95 */
+[data-theme="win95"] {
+  --sys-bg: #008080;           
+  --sys-panel: #f1f1f1;        
+  --sys-dark: #a1a1a1;         
+  --sys-border: #ffffff;       
+  --sys-muted: #000000;        
+  --sys-muted-light: #212222; 
+  --sys-fg: #000000;           
+  --sys-accent: #000080;       
+  --sys-accent-light: #111111; 
+
+  --sys-wallpaper: url('/winxpwallpaper.jpg');
+  --sys-wp-blend: screen;
+  --sys-wp-opacity: 1;
+}
+/* hello kitty */
+[data-theme="akane"] {
+  --sys-bg: #ffe4e1;         
+  --sys-panel: #ffffff;        
+  --sys-dark: #ffb6c1;         
+  --sys-border: #ff69b4;       
+  --sys-muted: #d81b60;        
+  --sys-muted-light: #f06292;  
+  --sys-fg: #4a0e2e;           
+  --sys-accent: #ff0033;       
+  --sys-accent-light: #343136; 
+  
+  --sys-wallpaper: url('/hellokitty.jpg'); 
+  --sys-wp-blend: multiply;    
+  --sys-wp-opacity: 0.6;       
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,12 +81,8 @@
 }
 
 @keyframes blink {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0;
-  }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 .animate-blink {  
@@ -38,25 +95,24 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000; 
-  border-left: 1px solid rgba(22, 163, 74, 0.2); 
+  background: var(--sys-bg); 
+  border-left: 1px solid var(--sys-dark); 
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #14532d; 
+  background: var(--sys-dark); 
   border-radius: 2px; 
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4ade80;
+  background: var(--sys-accent);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #14532d #000000;
+  scrollbar-color: var(--sys-dark) var(--sys-bg);
 }
 
- /* scrollbar dos chats */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px; 
 }

@@ -40,7 +40,7 @@ export default function ChatArea({
           setIsMobileSidebarOpen(true);
           setIsDesktopSidebarOpen(true);
         }}
-        className={`absolute top-4 left-4 z-30 p-2 text-green-600 hover:text-green-400 focus:outline-none bg-black/50 backdrop-blur-sm transition-opacity duration-300 cursor-pointer
+        className={`absolute top-4 left-4 z-30 p-2 text-sys-muted-light hover:text-sys-accent focus:outline-none bg-sys-bg/50 backdrop-blur-sm transition-opacity duration-300 cursor-pointer
           ${isDesktopSidebarOpen ? "md:opacity-0 md:pointer-events-none" : "opacity-100"}
         `}
         title="Abrir terminal"
@@ -58,8 +58,8 @@ export default function ChatArea({
               <div
                 className={`p-2 border flex-shrink-0 ${
                   m.role === "user"
-                    ? "border-green-400 bg-green-950/50 text-green-400"
-                    : "border-green-600 bg-black text-green-600"
+                    ? "border-sys-accent bg-sys-panel/50 text-sys-accent"
+                    : "border-sys-muted-light bg-sys-bg text-sys-muted-light"
                 }`}
               >
                 {m.role === "user" ? (
@@ -70,13 +70,13 @@ export default function ChatArea({
               </div>
 
               <div
-                className={`p-3 md:p-5 border w-full overflow-hidden shadow-[0_0_10px_rgba(0,255,0,0.05)] ${
+                className={`p-3 md:p-5 border w-full overflow-hidden shadow-[0_0_10px_var(--sys-shadow)] ${
                   m.role === "user"
-                    ? "bg-green-950/30 border-green-400 text-green-300"
-                    : "bg-black border-green-700 text-green-500"
+                    ? "bg-sys-panel/30 border-sys-accent text-sys-accent-light"
+                    : "bg-sys-bg border-sys-border text-sys-fg"
                 }`}
               >
-                <div className="text-xs opacity-50 mb-2 md:mb-3 select-none border-b border-green-900 pb-1">
+                <div className="text-xs opacity-50 mb-2 md:mb-3 select-none border-b border-sys-border pb-1">
                   {m.role === "user"
                     ? "user@botboy:~$"
                     : "root@botboy:~# /bin/bash"}
@@ -98,18 +98,18 @@ export default function ChatArea({
         </div>
       </main>
 
-      <div className="absolute bottom-0 w-full p-4 md:p-8 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none flex justify-center z-20">
+      <div className="absolute bottom-0 w-full p-4 md:p-8 bg-gradient-to-t from-sys-bg via-sys-bg/90 to-transparent pointer-events-none flex justify-center z-20">
         <div className="w-full max-w-2xl flex items-end gap-2 md:gap-3 pointer-events-auto">
           <form
             onSubmit={handleSubmit}
-            className="flex-grow flex gap-2 bg-black shadow-[0_-10px_20px_rgba(0,0,0,0.8)]"
+            className="flex-grow flex gap-2 bg-sys-bg shadow-[0_-10px_20px_var(--sys-shadow)]"
           >
             <div className="relative flex-grow flex items-top">
-              <span className="absolute left-3 md:left-4 top-3 md:top-4 text-green-700 font-bold select-none animate-pulse md:text-lg">
+              <span className="absolute left-3 md:left-4 top-3 md:top-4 text-sys-muted font-bold select-none animate-pulse md:text-lg">
                 ~$
               </span>
               <textarea
-                className="w-full pl-8 md:pl-10 p-3 md:p-4 bg-black border border-green-600 text-green-400 placeholder-green-900 outline-none focus:border-green-400 focus:shadow-[0_0_12px_rgba(34,197,94,0.3)] transition-all md:text-lg resize-none overflow-y-auto max-h-[120px]"
+                className="w-full pl-8 md:pl-10 p-3 md:p-4 bg-sys-bg border border-sys-muted-light text-sys-accent placeholder-sys-dark outline-none focus:border-sys-accent focus:shadow-[0_0_12px_var(--sys-shadow)] transition-all md:text-lg resize-none overflow-y-auto max-h-[120px]"
                 value={inputValue}
                 placeholder="Inserir comando..."
                 onChange={(e) => setInputValue(e.target.value)}
@@ -121,9 +121,7 @@ export default function ChatArea({
                 }}
                 onInput={(e) => {
                   const target = e.target as HTMLTextAreaElement;
-
                   target.style.height = "auto";
-
                   const maxHeight = 120;
                   if (target.scrollHeight <= maxHeight) {
                     target.style.height = target.scrollHeight + "px";
@@ -140,7 +138,7 @@ export default function ChatArea({
             </div>
             <button
               type="submit"
-              className="p-3 md:p-4 bg-black border border-green-600 text-green-500 hover:bg-green-900 hover:text-green-300 hover:border-green-400 transition-colors flex items-center justify-center cursor-pointer"
+              className="p-3 md:p-4 bg-sys-bg border border-sys-muted-light text-sys-fg hover:bg-sys-dark hover:text-sys-accent-light hover:border-sys-accent transition-colors flex items-center justify-center cursor-pointer"
             >
               <Send size={20} className="md:w-6 md:h-6" />
             </button>

@@ -7,39 +7,95 @@ import {
   User,
   Terminal,
   MessageSquare,
-  Database,
   Menu,
   X,
 } from "lucide-react";
 
+type ChatSession = {
+  id: string;
+  title: string;
+  createdAt: string;
+};
+
 export default function Chat() {
   const [inputValue, setInputValue] = useState("");
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   const currentChatId = useRef(crypto.randomUUID());
 
-  const { messages, sendMessage } = useChat();
+  const { messages, sendMessage, setMessages } = useChat({
+    onFinish: () => {
+      loadHistory();
+      
+      if (!activeChatId) {
+        setActiveChatId(currentChatId.current);
+      }
+    }
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const loadChat = async (id: string) => {
+    try {
+      setActiveChatId(id);
+      currentChatId.current = id;
+      
+      const response = await fetch(`/api/chat/${id}`);
+      if (!response.ok) throw new Error("Falha ao buscar mensagens");
+      
+      const history = await response.json();
+      
+      setMessages(history);
+    } catch (err) {
+      console.error("Erro ao carregar chat:", err);
+    }
+  };
+
+  const loadHistory = async () => {
+    try {
+      const response = await fetch("/api/history");
+      const data = await response.json();
+      setSessions(data);
+    } catch (err) {
+      console.error("Erro ao carregar sessões:", err);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const createNewChat = () => {
+    const newId = crypto.randomUUID();
+    currentChatId.current = newId;
+    setActiveChatId(null);
+    setMessages([]);
+  };
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages?.length]);
 
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!inputValue.trim()) return;
-  sendMessage(
-    { text: inputValue },
-    {
-      headers: {
-        'x-chat-id': currentChatId.current,
+    e.preventDefault();
+    if (!inputValue.trim()) return;
+    sendMessage(
+      { text: inputValue },
+      {
+        headers: {
+          "x-chat-id": currentChatId.current,
+        },
       },
-    }
-  );
-  setInputValue('');
-};
+    );
+    setInputValue("");
+  };
 
   return (
     <div className="flex h-screen w-full bg-black font-mono text-green-500 overflow-hidden relative">
@@ -77,7 +133,6 @@ export default function Chat() {
             </div>
 
             <div className="flex items-center gap-1">
-              {/* botão pra minimizar sidebar no desktop */}
               <button
                 className="hidden md:flex items-center justify-center text-green-600 hover:text-green-400 p-1 w-8 h-8 font-bold text-xl transition-colors cursor-pointer"
                 onClick={() => setIsDesktopSidebarOpen(false)}
@@ -86,7 +141,6 @@ export default function Chat() {
                 _
               </button>
 
-              {/* botão pra fechar sidebar no mobile */}
               <button
                 className="md:hidden text-green-600 hover:text-green-400 p-1 cursor-pointer"
                 onClick={() => setIsMobileSidebarOpen(false)}
@@ -96,29 +150,56 @@ export default function Chat() {
             </div>
           </div>
 
-          <div className="flex-1 space-y-6">
-            <div>
-              <h2 className="text-xs text-green-600 uppercase tracking-wider mb-3 flex items-center gap-2">
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-xs text-green-600 uppercase tracking-wider flex items-center gap-2">
                 <MessageSquare size={14} />
                 Sessões
               </h2>
-              <div className="text-sm text-green-800/60 p-2 border border-green-900/50 bg-green-950/10 border-dashed">
-                [ Banco de dados vazio ]
-              </div>
+              {/* criar novo chat*/}
+              <button
+                onClick={createNewChat}
+                className="text-xs text-green-500 hover:text-green-300 border border-green-800 hover:border-green-400 px-2 py-1 transition-all cursor-pointer bg-green-950/20"
+                title="Nova Sessão"
+              >
+                [ + ]
+              </button>
             </div>
 
-            <div>
-              <h2 className="text-xs text-green-600 uppercase tracking-wider mb-3 flex items-center gap-2">
-                <Database size={14} />
-                Contextos
-              </h2>
-              <div className="text-sm text-green-800/60 p-2 border border-green-900/50 bg-green-950/10 border-dashed">
-                [ Nenhum vetor carregado ]
-              </div>
+            <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-2 custom-scrollbar">
+              {isLoadingHistory ? (
+                <div className="text-xs text-green-800 animate-pulse">
+                  [ Carregando... ]
+                </div>
+              ) : sessions.length > 0 ? (
+                sessions.map((session) => (
+                  <button
+                    key={session.id}
+                    className={`w-full text-left p-2 border transition-all group cursor-pointer ${
+                      activeChatId === session.id
+                        ? "border-green-400 bg-green-900/30 shadow-[0_0_10px_rgba(0,255,0,0.1)]"
+                        : "border-green-900/30 bg-green-950/5 hover:bg-green-900/20 hover:border-green-600"
+                    }`}
+                    onClick={() => loadChat(session.id)}
+                  >
+                    <div className="text-sm text-green-400 truncate group-hover:text-green-300">
+                      {session.title || "Nova Conversa"}
+                    </div>
+                    <div className="text-[10px] text-green-900 mt-1 flex justify-between">
+                      <span>{new Date(session.createdAt).toLocaleDateString("pt-BR")}</span>
+                      <span>ID: {session.id.slice(0, 8)}</span>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <div className="text-sm text-green-800/60 p-2 border border-green-900/50 bg-green-950/10 border-dashed">
+                  [ Banco de dados vazio ]
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="mt-50 mb-3 pt-4 text-sm text-green-700 text-center hover:text-green-400 transition-colors">
+          <div className="mt-44 mb-3 pt-4 text-sm text-green-700 text-center hover:text-green-400 transition-colors">
             <a
               href="https://loretoportifolio.vercel.app/"
               target="_blank"
@@ -203,9 +284,7 @@ export default function Chat() {
 
         {/* inputs */}
         <div className="absolute bottom-0 w-full p-4 md:p-8 bg-gradient-to-t from-black via-black/90 to-transparent pointer-events-none flex justify-center z-20">
-          {/* 1. Wrapper flex que segura o form e o gif juntos no mesmo limite de largura (max-w-2xl) */}
           <div className="w-full max-w-2xl flex items-end gap-2 md:gap-3 pointer-events-auto">
-            {/* 2. Adicionado 'flex-grow' para o formulário ocupar todo o espaço possível */}
             <form
               onSubmit={handleSubmit}
               className="flex-grow flex gap-2 bg-black shadow-[0_-10px_20px_rgba(0,0,0,0.8)]"

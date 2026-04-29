@@ -34,7 +34,7 @@ export default function Mewo() {
     <div 
       className="relative flex-shrink-0 pb-1 cursor-pointer select-none group" 
       onClick={handleClick}
-      title="Fazer carinho"
+      title="Este é Mewo :3"
     >
       {/* mewo :3*/}
       <div className="opacity-80 group-hover:opacity-100 transition-opacity">

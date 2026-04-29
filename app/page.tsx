@@ -1,9 +1,10 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { useState, useEffect, useRef } from "react";
-import { Volume2, VolumeX } from "lucide-react";
+import { Settings } from "lucide-react";
 import Sidebar, { ChatSession } from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
+import SettingsModal from "./components/SettingsModal"; 
 
 export default function Chat() {
   const [inputValue, setInputValue] = useState("");
@@ -14,20 +15,28 @@ export default function Chat() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const [volume, setVolume] = useState(0.3); 
+  const [theme, setTheme] = useState("green"); 
 
+  const audioRef = useRef<HTMLAudioElement>(null);
   const currentChatId = useRef(crypto.randomUUID());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  //musica de fundo
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
+  }, [volume]);
+
   const toggleMusic = () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
         audioRef.current.play();
-        audioRef.current.volume = 0.1;
+        audioRef.current.volume = volume;
       }
       setIsPlaying(!isPlaying);
     }
@@ -126,23 +135,25 @@ export default function Chat() {
         preload="auto"
       />
 
+      {/* button do modal de settings */}
       <button
-        onClick={toggleMusic}
-        className="absolute top-4 right-4 z-50 p-2 text-green-600 hover:text-green-400 bg-black/80 border border-green-900/50 hover:border-green-400 backdrop-blur-sm transition-all cursor-pointer shadow-[0_0_10px_rgba(0,0,0,0.5)] active:scale-95 flex items-center gap-2"
-        title="BGM Toggle"
+        onClick={() => setIsSettingsOpen(true)}
+        className="absolute top-4 right-4 z-30 p-2 text-green-600 hover:text-green-400 bg-black/80 border border-green-900/50 hover:border-green-400 backdrop-blur-sm transition-all cursor-pointer shadow-[0_0_10px_rgba(0,0,0,0.5)] active:scale-95"
+        title="Configurações do Sistema"
       >
-        {isPlaying ? (
-          <>
-            <span className="text-[10px] uppercase tracking-widest hidden md:inline animate-pulse">BGM_ON</span>
-            <Volume2 size={20} />
-          </>
-        ) : (
-          <>
-            <span className="text-[10px] uppercase tracking-widest hidden md:inline text-green-900">BGM_OFF</span>
-            <VolumeX size={20} className="text-green-900" />
-          </>
-        )}
+        <Settings size={20} className="animate-[spin_4s_linear_infinite] hover:animate-none" />
       </button>
+
+      <SettingsModal 
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        isPlaying={isPlaying}
+        toggleMusic={toggleMusic}
+        volume={volume}
+        setVolume={setVolume}
+        theme={theme}
+        setTheme={setTheme}
+      />
 
       <Sidebar
         isMobileSidebarOpen={isMobileSidebarOpen}

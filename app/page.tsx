@@ -5,6 +5,25 @@ import { Settings } from "lucide-react";
 import Sidebar, { ChatSession } from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import SettingsModal from "./components/SettingsModal";
+import CookieBanner from "./components/CookieBanner";
+
+function getCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function setCookie(name: string, value: string, days = 365) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+}
+
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+}
+
+const CONSENT_KEY = "cookie_consent"; //"accepted" | "declined"
+const THEME_KEY = "pref_theme";
 
 export default function Chat() {
   const [inputValue, setInputValue] = useState("");
@@ -18,7 +37,50 @@ export default function Chat() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
-  const [theme, setTheme] = useState("green");
+
+  const [cookieConsent, setCookieConsent] = useState<boolean | null>(() => {
+    const saved = getCookie(CONSENT_KEY);
+    if (saved === "accepted") return true;
+    if (saved === "declined") return false;
+    return null;
+  });
+
+
+  const [showBanner, setShowBanner] = useState(
+    () => getCookie(CONSENT_KEY) === null,
+  );
+
+  const handleAcceptCookies = () => {
+    setCookie(CONSENT_KEY, "accepted");
+    setCookieConsent(true);
+    setShowBanner(false);
+    //persiste o tema atual imediatamente
+    setCookie(THEME_KEY, theme);
+  };
+
+  const handleDeclineCookies = () => {
+    setCookie(CONSENT_KEY, "declined");
+    setCookieConsent(false);
+    setShowBanner(false);
+    //garante que nenhuma preferência fique salva
+    deleteCookie(THEME_KEY);
+  };
+
+
+  const [theme, setTheme] = useState<string>(() => {
+    if (typeof document === "undefined") return "green";
+    const consent = getCookie(CONSENT_KEY);
+    if (consent === "accepted") {
+      return getCookie(THEME_KEY) ?? "green";
+    }
+    return "green";
+  });
+
+  useEffect(() => {
+    if (cookieConsent === true) {
+      setCookie(THEME_KEY, theme);
+    }
+  }, [theme, cookieConsent]);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const currentChatId = useRef(crypto.randomUUID());
@@ -90,21 +152,15 @@ export default function Chat() {
       try {
         const response = await fetch("/api/history");
         const data = await response.json();
-
-        if (isMounted) {
-          setSessions(data);
-        }
+        if (isMounted) setSessions(data);
       } catch (err) {
         console.error("Erro ao carregar sessões iniciais:", err);
       } finally {
-        if (isMounted) {
-          setIsLoadingHistory(false);
-        }
+        if (isMounted) setIsLoadingHistory(false);
       }
     };
 
     fetchInitialHistory();
-
     return () => {
       isMounted = false;
     };
@@ -129,11 +185,12 @@ export default function Chat() {
       data-theme={theme}
       className="flex h-screen w-full bg-sys-bg font-mono text-sys-fg overflow-hidden relative transition-colors duration-300"
     >
-      <div 
+      <div
         className="absolute inset-0 z-[0] bg-cover bg-center bg-no-repeat pointer-events-none transition-all duration-500 ease-in-out"
         style={{
           backgroundImage: "var(--sys-wallpaper)",
-          mixBlendMode: "var(--sys-wp-blend)" as React.CSSProperties["mixBlendMode"],
+          mixBlendMode:
+            "var(--sys-wp-blend)" as React.CSSProperties["mixBlendMode"],
           opacity: "var(--sys-wp-opacity)" as React.CSSProperties["opacity"],
         }}
       />
@@ -184,6 +241,14 @@ export default function Chat() {
         setIsMobileSidebarOpen={setIsMobileSidebarOpen}
         setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
       />
+
+      {/* Banner aparece apenas enquanto o usuário não decidiu */}
+      {showBanner && (
+        <CookieBanner
+          onAccept={handleAcceptCookies}
+          onDecline={handleDeclineCookies}
+        />
+      )}
     </div>
   );
 }

@@ -19,8 +19,8 @@ model Chat {
 model Message {
   id        String   @id @default(uuid())
   chatId    String
-  role      String   //'user' ou 'assistant'
-  content   String   // O texto da mensagem
+  role      String   
+  content   String   
   createdAt DateTime @default(now())
   chat      Chat     @relation(fields: [chatId], references: [id])
 }

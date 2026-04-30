@@ -1,16 +1,18 @@
-package org.Izuki.rest.dto.userDTO;
+package org.Izuki.rest.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserSaveRequestDTO {
+public class UserResponseDTO {
 
     private String email;
 
-    private String password;
+    private UUID lookupId;
 
 }

@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.Izuki.rest.dto.authDTO.LoginRequestDTO;
-import org.Izuki.rest.dto.authDTO.LoginResponseDTO;
+import org.Izuki.rest.dto.auth.LoginRequestDTO;
+import org.Izuki.rest.dto.auth.LoginResponseDTO;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 

@@ -7,8 +7,8 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.Izuki.rest.dto.userDTO.UserResponseDTO;
-import org.Izuki.rest.dto.userDTO.UserSaveRequestDTO;
+import org.Izuki.rest.dto.auth.RegisterSaveRequestDTO;
+import org.Izuki.rest.dto.user.UserResponseDTO;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 
@@ -32,5 +32,5 @@ public interface UserRestControllerAPI {
                             schema = @Schema(implementation = ProblemDetail.class))),
     })
     ResponseEntity<UserResponseDTO> create(@RequestBody(description = "Dados do cliente a ser criado.")
-                                           UserSaveRequestDTO dto) throws RuntimeException;
+                                           RegisterSaveRequestDTO dto) throws RuntimeException;
 }

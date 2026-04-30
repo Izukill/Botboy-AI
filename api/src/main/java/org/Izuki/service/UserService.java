@@ -1,8 +1,10 @@
 package org.Izuki.service;
 
 import org.Izuki.entity.User;
+import org.Izuki.mapper.UserMapper;
 import org.Izuki.repository.UserRepository;
-import org.Izuki.rest.dto.userDTO.UserSaveRequestDTO;
+import org.Izuki.rest.dto.auth.RegisterSaveRequestDTO;
+import org.Izuki.rest.dto.user.UserResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,18 +22,19 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public User create(UserSaveRequestDTO user){
-        Optional<User> userExist= userRepository.findByEmail(user.getEmail());
+    @Autowired
+    private UserMapper userMapper;
 
-        if(userExist.isPresent()){
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Este email já está em uso");
+    public UserResponseDTO create(RegisterSaveRequestDTO requestDTO) {
+        Optional<User> userExist = userRepository.findByEmail(requestDTO.getEmail());
+
+        if (userExist.isPresent()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Este email já está em uso");
         }
-        User userNew= new User();
-        userNew.setEmail(user.getEmail());
-        String encryptedPassword = passwordEncoder.encode(user.getPassword());
-        userNew.setPassword(encryptedPassword);
-        return userRepository.save(userNew);
+
+        User userNew = userMapper.toEntity(requestDTO);
+        userNew.setPassword(passwordEncoder.encode(userNew.getPassword()));
+        User savedUser = userRepository.save(userNew);
+        return userMapper.toResponse(savedUser);
     }
-
-
 }

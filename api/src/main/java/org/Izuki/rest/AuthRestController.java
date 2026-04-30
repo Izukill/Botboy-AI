@@ -1,8 +1,8 @@
 package org.Izuki.rest;
 
 import jakarta.validation.Valid;
-import org.Izuki.rest.dto.authDTO.LoginRequestDTO;
-import org.Izuki.rest.dto.authDTO.LoginResponseDTO;
+import org.Izuki.rest.dto.auth.LoginRequestDTO;
+import org.Izuki.rest.dto.auth.LoginResponseDTO;
 import org.Izuki.entity.User;
 import org.Izuki.security.TokenService;
 import org.springframework.beans.factory.annotation.Autowired;

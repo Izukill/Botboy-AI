@@ -1,4 +1,4 @@
-package org.Izuki.rest.dto.authDTO;
+package org.Izuki.rest.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

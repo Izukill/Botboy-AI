@@ -26,7 +26,7 @@ public class AuthRestController implements AuthRestControllerAPI {
     private AuthenticationManager manager;
 
     @Override
-    @PostMapping
+    @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> efetuarLogin(@RequestBody @Valid LoginRequestDTO dados) {
 
         var authenticationToken = new UsernamePasswordAuthenticationToken(dados.getEmail(), dados.getPassword());

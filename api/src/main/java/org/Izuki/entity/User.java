@@ -32,6 +32,7 @@ public class User implements UserDetails {
         this.lookupId = UUID.randomUUID();
     }
 
+    @Column(unique = true)
     private String email;
 
     private String password;
@@ -43,7 +44,7 @@ public class User implements UserDetails {
 
     @Override
     public String getPassword() {
-        return "";
+        return password;
     }
 
     @Override

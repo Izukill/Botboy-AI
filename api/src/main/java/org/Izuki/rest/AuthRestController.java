@@ -29,14 +29,15 @@ public class AuthRestController implements AuthRestControllerAPI {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> efetuarLogin(@RequestBody @Valid LoginRequestDTO dados) {
 
-        var authenticationToken = new UsernamePasswordAuthenticationToken(dados.getEmail(), dados.getPassword());
-
-        Authentication authentication = manager.authenticate(authenticationToken);
-
-        var tokenJWT = tokenService.generateToken((User) authentication.getPrincipal());
-
-        return ResponseEntity.ok(new LoginResponseDTO(tokenJWT));
-
-
+        try {
+            var authenticationToken = new UsernamePasswordAuthenticationToken(dados.getEmail(), dados.getPassword());
+            Authentication authentication = manager.authenticate(authenticationToken);
+            var tokenJWT = tokenService.generateToken((User) authentication.getPrincipal());
+            return ResponseEntity.ok(new LoginResponseDTO(tokenJWT));
+        } catch (Exception e) {
+            System.out.println(">>> AUTH EXCEPTION: " + e.getClass().getName());
+            System.out.println(">>> AUTH MESSAGE: " + e.getMessage());
+            throw e;
+        }
     }
 }

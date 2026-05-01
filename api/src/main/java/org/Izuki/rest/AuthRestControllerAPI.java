@@ -11,10 +11,12 @@ import org.Izuki.rest.dto.auth.LoginRequestDTO;
 import org.Izuki.rest.dto.auth.LoginResponseDTO;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Tag(name = "Auth", description = "Endpoint para autenticação de usuarios")
 public interface AuthRestControllerAPI {
 
+    @PostMapping
     @Operation(summary = "Fazer login no site.",
             description = "Recebe as credenciais do usuário (e-mail e senha) e retorna um token JWT para acesso aos endpoints protegidos.")
     @ApiResponses(value = {

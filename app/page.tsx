@@ -1,7 +1,8 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
 import { useState, useEffect, useRef } from "react";
-import { Settings } from "lucide-react";
+import { Settings, User, LogIn, LogOut } from "lucide-react";
+import Link from "next/link";
 import Sidebar, { ChatSession } from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import SettingsModal from "./components/SettingsModal";
@@ -22,7 +23,7 @@ function deleteCookie(name: string) {
   document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
 }
 
-const CONSENT_KEY = "cookie_consent"; //"accepted" | "declined"
+const CONSENT_KEY = "cookie_consent";
 const THEME_KEY = "pref_theme";
 
 export default function Chat() {
@@ -35,6 +36,12 @@ export default function Chat() {
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // 3. Novo estado para controlar o menu dropdown do usuário
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  // Estado simulado de login (Substitua depois pelo seu Contexto de Auth)
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
 
@@ -45,16 +52,14 @@ export default function Chat() {
     return null;
   });
 
-
   const [showBanner, setShowBanner] = useState(
-    () => getCookie(CONSENT_KEY) === null,
+      () => getCookie(CONSENT_KEY) === null,
   );
 
   const handleAcceptCookies = () => {
     setCookie(CONSENT_KEY, "accepted");
     setCookieConsent(true);
     setShowBanner(false);
-    //persiste o tema atual imediatamente
     setCookie(THEME_KEY, theme);
   };
 
@@ -62,10 +67,8 @@ export default function Chat() {
     setCookie(CONSENT_KEY, "declined");
     setCookieConsent(false);
     setShowBanner(false);
-    //garante que nenhuma preferência fique salva
     deleteCookie(THEME_KEY);
   };
-
 
   const [theme, setTheme] = useState<string>(() => {
     if (typeof document === "undefined") return "green";
@@ -174,81 +177,120 @@ export default function Chat() {
     e.preventDefault();
     if (!inputValue.trim()) return;
     sendMessage(
-      { text: inputValue },
-      { headers: { "x-chat-id": currentChatId.current } },
+        { text: inputValue },
+        { headers: { "x-chat-id": currentChatId.current } },
     );
     setInputValue("");
   };
 
   return (
-    <div
-      data-theme={theme}
-      className="flex h-screen w-full bg-sys-bg font-mono text-sys-fg overflow-hidden relative transition-colors duration-300"
-    >
       <div
-        className="absolute inset-0 z-[0] bg-cover bg-center bg-no-repeat pointer-events-none transition-all duration-500 ease-in-out"
-        style={{
-          backgroundImage: "var(--sys-wallpaper)",
-          mixBlendMode:
-            "var(--sys-wp-blend)" as React.CSSProperties["mixBlendMode"],
-          opacity: "var(--sys-wp-opacity)" as React.CSSProperties["opacity"],
-        }}
-      />
-
-      <audio ref={audioRef} src="/backgroundmusic.mp3" loop preload="auto" />
-
-      <button
-        onClick={() => setIsSettingsOpen(true)}
-        className="absolute top-4 right-4 z-30 p-2 text-sys-muted-light hover:text-sys-accent bg-sys-bg/80 border border-sys-border hover:border-sys-accent backdrop-blur-sm transition-all cursor-pointer shadow-[0_0_10px_var(--sys-shadow)] active:scale-95"
-        title="Configurações do Sistema"
+          data-theme={theme}
+          className="flex h-screen w-full bg-sys-bg font-mono text-sys-fg overflow-hidden relative transition-colors duration-300"
       >
-        <Settings
-          size={20}
-          className="animate-[spin_4s_linear_infinite] hover:animate-none"
+        <div
+            className="absolute inset-0 z-[0] bg-cover bg-center bg-no-repeat pointer-events-none transition-all duration-500 ease-in-out"
+            style={{
+              backgroundImage: "var(--sys-wallpaper)",
+              mixBlendMode: "var(--sys-wp-blend)" as React.CSSProperties["mixBlendMode"],
+              opacity: "var(--sys-wp-opacity)" as React.CSSProperties["opacity"],
+            }}
         />
-      </button>
 
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        isPlaying={isPlaying}
-        toggleMusic={toggleMusic}
-        volume={volume}
-        setVolume={setVolume}
-        theme={theme}
-        setTheme={setTheme}
-      />
+        <audio ref={audioRef} src="/backgroundmusic.mp3" loop preload="auto" />
 
-      <Sidebar
-        isMobileSidebarOpen={isMobileSidebarOpen}
-        setIsMobileSidebarOpen={setIsMobileSidebarOpen}
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
-        sessions={sessions}
-        isLoadingHistory={isLoadingHistory}
-        activeChatId={activeChatId}
-        loadChat={loadChat}
-        createNewChat={createNewChat}
-      />
+        <div className="absolute top-4 right-4 z-30 flex flex-col items-end">
+          {/* Botão do Ícone de Usuário */}
+          <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              className={`p-2 backdrop-blur-sm transition-all cursor-pointer shadow-[0_0_10px_var(--sys-shadow)] active:scale-95 border flex items-center justify-center ${
+                  isUserMenuOpen
+                      ? "bg-sys-dark/50 border-sys-accent text-sys-accent"
+                      : "bg-sys-bg/80 border-sys-border text-sys-muted-light hover:text-sys-accent hover:border-sys-accent"
+              }`}
+              title="Menu do Usuário"
+          >
+            <User size={20} />
+          </button>
 
-      <ChatArea
-        messages={messages}
-        messagesEndRef={messagesEndRef}
-        inputValue={inputValue}
-        setInputValue={setInputValue}
-        handleSubmit={handleSubmit}
-        isDesktopSidebarOpen={isDesktopSidebarOpen}
-        setIsMobileSidebarOpen={setIsMobileSidebarOpen}
-        setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
-      />
+          {isUserMenuOpen && (
+              <div className="mt-2 w-48 bg-sys-bg border border-sys-border shadow-[0_0_15px_var(--sys-shadow)] flex flex-col animate-[slideDown_0.2s_ease-out]">
 
-      {/* Banner aparece apenas enquanto o usuário não decidiu */}
-      {showBanner && (
-        <CookieBanner
-          onAccept={handleAcceptCookies}
-          onDecline={handleDeclineCookies}
+                <button
+                    onClick={() => {
+                      setIsSettingsOpen(true);
+                      setIsUserMenuOpen(false);
+                    }}
+                    className="flex items-center gap-3 p-3 text-sm text-sys-muted hover:text-sys-accent hover:bg-sys-panel/20 transition-colors text-left border-b border-sys-border/50 cursor-pointer"
+                >
+                  <Settings size={16} />
+                  Configurações
+                </button>
+
+                {isLoggedIn ? (
+                    <button
+                        onClick={() => {
+                          setIsLoggedIn(false); // Lógica de logout
+                          setIsUserMenuOpen(false);
+                        }}
+                        className="flex items-center gap-3 p-3 text-sm text-red-500 hover:text-red-400 hover:bg-red-950/20 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut size={16} />
+                      Encerrar Sessão
+                    </button>
+                ) : (
+                    <Link
+                        href="/login"
+                        className="flex items-center gap-3 p-3 text-sm text-sys-muted hover:text-sys-accent hover:bg-sys-panel/20 transition-colors text-left cursor-pointer"
+                    >
+                      <LogIn size={16} />
+                      Acessar Conta
+                    </Link>
+                )}
+              </div>
+          )}
+        </div>
+
+        <SettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            isPlaying={isPlaying}
+            toggleMusic={toggleMusic}
+            volume={volume}
+            setVolume={setVolume}
+            theme={theme}
+            setTheme={setTheme}
         />
-      )}
-    </div>
+
+        <Sidebar
+            isMobileSidebarOpen={isMobileSidebarOpen}
+            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+            isDesktopSidebarOpen={isDesktopSidebarOpen}
+            setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
+            sessions={sessions}
+            isLoadingHistory={isLoadingHistory}
+            activeChatId={activeChatId}
+            loadChat={loadChat}
+            createNewChat={createNewChat}
+        />
+
+        <ChatArea
+            messages={messages}
+            messagesEndRef={messagesEndRef}
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            handleSubmit={handleSubmit}
+            isDesktopSidebarOpen={isDesktopSidebarOpen}
+            setIsMobileSidebarOpen={setIsMobileSidebarOpen}
+            setIsDesktopSidebarOpen={setIsDesktopSidebarOpen}
+        />
+
+        {showBanner && (
+            <CookieBanner
+                onAccept={handleAcceptCookies}
+                onDecline={handleDeclineCookies}
+            />
+        )}
+      </div>
   );
 }

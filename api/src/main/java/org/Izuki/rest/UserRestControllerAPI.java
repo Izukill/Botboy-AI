@@ -11,10 +11,12 @@ import org.Izuki.rest.dto.auth.RegisterSaveRequestDTO;
 import org.Izuki.rest.dto.user.UserResponseDTO;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 
 @Tag(name = "User", description = "Endpoints de usuário")
 public interface UserRestControllerAPI {
 
+    @PostMapping
     @Operation(summary = "Criar um novo Cliente.",
             description = "Cria um novo Cliente com base na descrição informada.")
     @ApiResponses(value = {

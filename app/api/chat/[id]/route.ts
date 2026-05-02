@@ -2,17 +2,29 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 export async function GET(
-  req: Request,
-  // 1. Tipamos o params explicitamente como uma Promise
-  { params }: { params: Promise<{ id: string }> }
+    req: Request,
+    { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // 2. Fazemos o await antes de desestruturar o id
     const { id } = await params;
+
+    const userId = req.headers.get('x-user-id');
+
+    if (!userId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const chat = await prisma.chat.findUnique({
+      where: { id: id }
+    });
+
+    if (!chat || chat.userId !== userId) {
+      return NextResponse.json({ error: "Chat não encontrado ou acesso negado" }, { status: 403 });
+    }
 
     const messages = await prisma.message.findMany({
       where: { chatId: id },
-      orderBy: { createdAt: 'asc' }, // Ordem cronológica
+      orderBy: { createdAt: 'asc' },
       select: {
         id: true,
         role: true,
@@ -20,7 +32,6 @@ export async function GET(
       }
     });
 
-    // Mapeia para o formato que o useChat espera (parts)
     const formattedMessages = messages.map(msg => ({
       id: msg.id,
       role: msg.role,

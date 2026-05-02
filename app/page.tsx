@@ -1,12 +1,14 @@
 "use client";
 import { useChat } from "@ai-sdk/react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Settings, User, LogIn, LogOut } from "lucide-react";
 import Link from "next/link";
 import Sidebar, { ChatSession } from "./components/Sidebar";
 import ChatArea from "./components/ChatArea";
 import SettingsModal from "./components/SettingsModal";
 import CookieBanner from "./components/CookieBanner";
+import { useAuth } from "./contexts/AuthContext";
+import { DefaultChatTransport } from "ai";
 
 function getCookie(name: string): string | null {
   if (typeof document === "undefined") return null;
@@ -27,6 +29,29 @@ const CONSENT_KEY = "cookie_consent";
 const THEME_KEY = "pref_theme";
 
 export default function Chat() {
+  // ✅ Apenas o que o AuthContext realmente expõe
+  const { token, isLoggedIn, logout } = useAuth();
+
+  // ✅ useMemo para não recriar o objeto a cada render
+  const userId = useMemo(() => {
+    if (!token) return null;
+    try {
+      return JSON.parse(atob(token.split(".")[1])).sub as string;
+    } catch {
+      return null;
+    }
+  }, [token]);
+
+  const authHeaders = useMemo(
+      () => (userId ? { "x-user-id": userId } : {}) as Record<string, string>,
+      [userId]
+  );
+
+  const transport = useMemo(
+      () => new DefaultChatTransport({ api: "/api/chat" }),
+      []
+  );
+
   const [inputValue, setInputValue] = useState("");
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -36,25 +61,113 @@ export default function Chat() {
   const [isDesktopSidebarOpen, setIsDesktopSidebarOpen] = useState(true);
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-
-  // 3. Novo estado para controlar o menu dropdown do usuário
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  // Estado simulado de login (Substitua depois pelo seu Contexto de Auth)
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(0.3);
 
-  const [cookieConsent, setCookieConsent] = useState<boolean | null>(() => {
-    const saved = getCookie(CONSENT_KEY);
-    if (saved === "accepted") return true;
-    if (saved === "declined") return false;
-    return null;
+  const [showBanner, setShowBanner] = useState(false);
+
+  const [theme, setTheme] = useState<string>("green");
+  const [cookieConsent, setCookieConsent] = useState<boolean | null>(null);
+
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const currentChatId = useRef(crypto.randomUUID());
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const { messages, sendMessage, setMessages } = useChat({
+    transport,
+    onFinish: () => {
+      refreshHistory();
+      if (!activeChatId) setActiveChatId(currentChatId.current);
+    },
   });
 
-  const [showBanner, setShowBanner] = useState(
-      () => getCookie(CONSENT_KEY) === null,
-  );
+  useEffect(() => {
+    setShowBanner(getCookie(CONSENT_KEY) === null);
+  }, []);
+
+  useEffect(() => {
+    const consent = getCookie(CONSENT_KEY);
+    if (consent === "accepted") {
+      setCookieConsent(true);
+      setTheme(getCookie(THEME_KEY) ?? "green");
+    } else if (consent === "declined") {
+      setCookieConsent(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = volume;
+  }, [volume]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages?.length]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchInitialHistory = async () => {
+      if (!userId) {
+        if (isMounted) setIsLoadingHistory(false);
+        return;
+      }
+      try {
+        const response = await fetch("/api/history", { headers: authHeaders });
+        if (response.ok) {
+          const data = await response.json();
+          if (isMounted) setSessions(data);
+        }
+      } catch (err) {
+        console.error("Erro ao carregar sessões iniciais:", err);
+      } finally {
+        if (isMounted) setIsLoadingHistory(false);
+      }
+    };
+
+    fetchInitialHistory();
+    return () => { isMounted = false; };
+  }, [userId]); // recarrega quando o login muda
+
+  const refreshHistory = async () => {
+    if (!userId) return;
+    try {
+      const response = await fetch("/api/history", { headers: authHeaders });
+      if (response.ok) setSessions(await response.json());
+    } catch (err) {
+      console.error("Erro ao recarregar sessões:", err);
+    }
+  };
+
+  const loadChat = async (id: string) => {
+    try {
+      setActiveChatId(id);
+      currentChatId.current = id;
+      const response = await fetch(`/api/chat/${id}`, { headers: authHeaders });
+      if (!response.ok) throw new Error("Falha ao buscar mensagens");
+      setMessages(await response.json());
+    } catch (err) {
+      console.error("Erro ao carregar chat:", err);
+    }
+  };
+
+  const createNewChat = () => {
+    currentChatId.current = crypto.randomUUID();
+    setActiveChatId(null);
+    setMessages([]);
+  };
+
+  const toggleMusic = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+      audioRef.current.volume = volume;
+    }
+    setIsPlaying(!isPlaying);
+  };
 
   const handleAcceptCookies = () => {
     setCookie(CONSENT_KEY, "accepted");
@@ -70,115 +183,18 @@ export default function Chat() {
     deleteCookie(THEME_KEY);
   };
 
-  const [theme, setTheme] = useState<string>(() => {
-    if (typeof document === "undefined") return "green";
-    const consent = getCookie(CONSENT_KEY);
-    if (consent === "accepted") {
-      return getCookie(THEME_KEY) ?? "green";
-    }
-    return "green";
-  });
-
-  useEffect(() => {
-    if (cookieConsent === true) {
-      setCookie(THEME_KEY, theme);
-    }
-  }, [theme, cookieConsent]);
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const currentChatId = useRef(crypto.randomUUID());
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-    }
-  }, [volume]);
-
-  const toggleMusic = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
-        audioRef.current.volume = volume;
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const refreshHistory = async () => {
-    try {
-      const response = await fetch("/api/history");
-      const data = await response.json();
-      setSessions(data);
-    } catch (err) {
-      console.error("Erro ao recarregar sessões:", err);
-    }
-  };
-
-  const { messages, sendMessage, setMessages } = useChat({
-    onFinish: () => {
-      refreshHistory();
-      if (!activeChatId) {
-        setActiveChatId(currentChatId.current);
-      }
-    },
-  });
-
-  const loadChat = async (id: string) => {
-    try {
-      setActiveChatId(id);
-      currentChatId.current = id;
-
-      const response = await fetch(`/api/chat/${id}`);
-      if (!response.ok) throw new Error("Falha ao buscar mensagens");
-
-      const history = await response.json();
-      setMessages(history);
-    } catch (err) {
-      console.error("Erro ao carregar chat:", err);
-    }
-  };
-
-  const createNewChat = () => {
-    const newId = crypto.randomUUID();
-    currentChatId.current = newId;
-    setActiveChatId(null);
-    setMessages([]);
-  };
-
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchInitialHistory = async () => {
-      try {
-        const response = await fetch("/api/history");
-        const data = await response.json();
-        if (isMounted) setSessions(data);
-      } catch (err) {
-        console.error("Erro ao carregar sessões iniciais:", err);
-      } finally {
-        if (isMounted) setIsLoadingHistory(false);
-      }
-    };
-
-    fetchInitialHistory();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages?.length]);
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
+
     sendMessage(
         { text: inputValue },
-        { headers: { "x-chat-id": currentChatId.current } },
+        {
+          headers: {
+            "x-chat-id": currentChatId.current,
+            ...(userId ? { "x-user-id": userId } : {}),
+          },
+        }
     );
     setInputValue("");
   };
@@ -200,7 +216,6 @@ export default function Chat() {
         <audio ref={audioRef} src="/backgroundmusic.mp3" loop preload="auto" />
 
         <div className="absolute top-4 right-4 z-30 flex flex-col items-end">
-          {/* Botão do Ícone de Usuário */}
           <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className={`p-2 backdrop-blur-sm transition-all cursor-pointer shadow-[0_0_10px_var(--sys-shadow)] active:scale-95 border flex items-center justify-center ${
@@ -215,7 +230,6 @@ export default function Chat() {
 
           {isUserMenuOpen && (
               <div className="mt-2 w-48 bg-sys-bg border border-sys-border shadow-[0_0_15px_var(--sys-shadow)] flex flex-col animate-[slideDown_0.2s_ease-out]">
-
                 <button
                     onClick={() => {
                       setIsSettingsOpen(true);
@@ -227,10 +241,11 @@ export default function Chat() {
                   Configurações
                 </button>
 
+                {/* ✅ isLoggedIn em vez de user (que não existe) */}
                 {isLoggedIn ? (
                     <button
                         onClick={() => {
-                          setIsLoggedIn(false); // Lógica de logout
+                          logout();
                           setIsUserMenuOpen(false);
                         }}
                         className="flex items-center gap-3 p-3 text-sm text-red-500 hover:text-red-400 hover:bg-red-950/20 transition-colors text-left cursor-pointer"

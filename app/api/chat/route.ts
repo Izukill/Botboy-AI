@@ -6,20 +6,28 @@ export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const chatId = req.headers.get('x-chat-id') ?? crypto.randomUUID();
+  const userId = req.headers.get('x-user-id');
+
   const { messages } = await req.json();
 
-  await prisma.chat.upsert({
-    where: { id: chatId },
-    update: {},
-    create: { id: chatId, title: 'Nova sessão via terminal' },
-  });
+  if (userId) {
+    await prisma.chat.upsert({
+      where: { id: chatId },
+      update: {},
+      create: {
+        id: chatId,
+        title: 'Nova sessão via terminal',
+        userId: userId
+      },
+    });
+  }
 
   //modelo e diretrizes de comportamento do bot
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
 
-    system: `Você é o Botboy, o assistente virtual operando em um terminal root, criado para auxiliar Izuki (o seu criador) com nome real de luan lorêto. 
-    Izuki é um desenvolvedor Fullstack (focado em Next.js, Java e Spring Boot e nest.js), estudante de ADS no IFPB, entusiasta de Cybersecurity e usuário de Linux Mint.
+    system: `Você é o Botboy, o assistente virtual operando em um terminal root, criado para auxiliar usuários com questões mais voltadas a programação e conhecimentos. 
+    o seu criador é Izuki (nome real: Luan Lorêto), um desenvolvedor Fullstack (focado em Next.js, Java e Spring Boot e nest.js), estudante de ADS no IFPB, entusiasta de Cybersecurity e usuário de Linux.
     
     Diretrizes de comportamento:
     1. Responda de forma concisa, direta e técnica.
@@ -29,6 +37,9 @@ export async function POST(req: Request) {
     messages: await convertToModelMessages(messages),
 
     async onFinish({ text }) {
+
+      if (!userId) return;
+
       try {
         const lastUserMessage = messages[messages.length - 1];
         let userContent = "";

@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const userId = req.headers.get('x-user-id');
+
+    if (!userId) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const chats = await prisma.chat.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-      // Opcional: trazer a última mensagem para usar como resumo
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
       include: {
         messages: {
           take: 1,

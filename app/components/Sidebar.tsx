@@ -158,17 +158,20 @@ export default function Sidebar({
             </div>
           </div>
 
-          <div className="mt-44 mb-3 pt-4 text-sm text-sys-muted text-center hover:text-sys-accent transition-colors">
-            <a
-              href="https://loretoportifolio.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <p>Sobre o Criador</p>
-            </a>
-          </div>
-          <div className="mt-auto pt-4 border-t border-sys-border text-xs text-sys-muted text-center">
-            <p>Acesso root autorizado.</p>
+          <div className="mt-auto flex flex-col">
+            <div className="mb-3 pt-4 text-sm text-sys-muted text-center hover:text-sys-accent transition-colors">
+              <a
+                  href="https://loretoportifolio.vercel.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+              >
+                <p>Sobre o Criador</p>
+              </a>
+            </div>
+
+            <div className="pt-4 border-t border-sys-border text-xs text-sys-muted text-center">
+              <p>Acesso root autorizado.</p>
+            </div>
           </div>
         </div>
       </aside>

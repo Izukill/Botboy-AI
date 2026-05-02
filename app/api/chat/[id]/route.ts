@@ -32,7 +32,11 @@ export async function GET(
       }
     });
 
-    const formattedMessages = messages.map(msg => ({
+    type MessageSelect = Awaited<ReturnType<typeof prisma.message.findMany<{
+      select: { id: true; role: true; content: true }
+    }>>>[number];
+
+    const formattedMessages = messages.map((msg: MessageSelect) => ({
       id: msg.id,
       role: msg.role,
       content: msg.content,

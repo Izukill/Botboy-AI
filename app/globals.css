@@ -73,6 +73,22 @@
   --sys-wp-opacity: 0.6;       
 }
 
+[data-theme="blue"] {
+  --sys-bg: #f0f9ff;
+  --sys-panel: #ffffff;
+  --sys-dark: #bae6fd;
+  --sys-border: #7dd3fc;
+  --sys-muted: #0284c7;
+  --sys-muted-light: #38bdf8;
+  --sys-fg: #0c4a6e;
+  --sys-accent: #0ea5e9;
+  --sys-accent-light: #ffffff;
+
+  --sys-wallpaper: url('/blue.jpg');
+  --sys-wp-blend: multiply;
+  --sys-wp-opacity: 0.4;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;

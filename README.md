@@ -1,6 +1,7 @@
 # Botboy AI - Assistente Virtual
 
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
 ![Next JS](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js&logoColor=white)
 ![Java](https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring](https://img.shields.io/badge/spring-%236DB33F.svg?style=for-the-badge&logo=spring&logoColor=white)
@@ -15,7 +16,6 @@
 - [☁️ Infraestrutura e Deploy](#-infraestrutura-e-deploy)
 - [🏗️ Arquitetura e Modelagem](#-arquitetura-e-modelagem)
 - [📝 Padrão de Commits](#-padrão-de-commits)
-- [📊 Códigos de Status HTTP](#-códigos-de-status-http)
 - [📡 Referência da API](#-referência-da-api)
 
 ## 📖 Sobre o Projeto

@@ -61,7 +61,7 @@ export default function ChatArea({
                 </span>
               </div>
           ) : (
-              <div className="w-full max-w-2xl mx-auto space-y-6 pb-32">
+              <div className="w-full max-w-4xl mx-auto space-y-6 pb-32">
                 {messages.map((m) => (
                     <div
                         key={m.id}
@@ -82,10 +82,10 @@ export default function ChatArea({
                       </div>
 
                       <div
-                          className={`p-3 md:p-5 border w-full overflow-hidden shadow-[0_0_10px_var(--sys-shadow)] ${
+                          className={`p-3 md:p-5 border overflow-hidden shadow-[0_0_10px_var(--sys-shadow)] ${
                               m.role === "user"
-                                  ? "bg-sys-panel/30 border-sys-accent text-sys-accent-light"
-                                  : "bg-sys-bg border-sys-border text-sys-fg"
+                                  ? "max-w-[85%] bg-sys-panel/30 border-sys-accent text-sys-accent-light"
+                                  : "max-w-[85%] bg-sys-bg border-sys-border text-sys-fg"
                           }`}
                       >
                         <div className="text-xs opacity-50 mb-2 md:mb-3 select-none border-b border-sys-border pb-1">
